@@ -1,0 +1,262 @@
+// ===== File: Tensors.hpp =====
+\#ifndef TENSORS\_HPP
+\#define TENSORS\_HPP
+
+\#include <iostream>
+\#include <vector>
+\#include <climits>
+
+static\_assert(sizeof(float) \* CHAR\_BIT == 32, "float is not 32 bit on this architecture");
+typedef float f32;
+
+class Tensors {
+public:
+Tensors();
+Tensors(const Tensors& other);
+Tensors& operator=(const Tensors& other);
+virtual \~Tensors();
+
+```
+virtual void print() const;
+virtual int size() const;
+
+// element access
+virtual std::vector<f32>& operator[](size_t index);
+virtual const std::vector<f32>& operator[](size_t index) const;
+
+// polymorphic math operations
+virtual Tensors* clone() const = 0;
+virtual Tensors* add(const Tensors& other) const = 0;
+virtual Tensors* substract(const Tensors& other) const = 0;
+virtual Tensors* scalar(f32 s) const = 0;
+
+friend std::ostream& operator<<(std::ostream& os, const Tensors& v);
+```
+
+protected:
+std::vector\<std::vector<f32>> \_content;
+size\_t rows;
+size\_t cols;
+};
+
+\#endif // TENSORS\_HPP
+
+// ===== File: Matrix.hpp =====
+\#ifndef MATRIX\_HPP
+\#define MATRIX\_HPP
+
+\#include "Tensors.hpp"
+class Vector;  // forward declaration
+
+class Matrix : public Tensors {
+public:
+Matrix();
+Matrix(size\_t r, size\_t c);
+Matrix(const Matrix& other);
+Matrix& operator=(const Matrix& other);
+\~Matrix() override;
+
+```
+// override polymorphic methods
+Matrix* clone() const override;
+Matrix* add(const Tensors& other) const override;
+Matrix* substract(const Tensors& other) const override;
+Matrix* scalar(f32 s) const override;
+
+// static convenience
+static Matrix add(const Matrix& a, const Matrix& b);
+static Matrix substract(const Matrix& a, const Matrix& b);
+static Matrix scalar(const Matrix& a, f32 s);
+
+bool is_square() const;
+Vector to_vector() const;
+
+// operators
+friend Matrix operator+(const Matrix& a, const Matrix& b);
+friend Matrix operator-(const Matrix& a, const Matrix& b);
+friend Matrix operator*(const Matrix& a, f32 s);
+```
+
+};
+
+\#endif // MATRIX\_HPP
+
+// ===== File: Vector.hpp =====
+\#ifndef VECTOR\_HPP
+\#define VECTOR\_HPP
+
+\#include "Tensors.hpp"
+class Matrix;  // forward declaration
+
+class Vector : public Tensors {
+public:
+Vector();
+Vector(size\_t length);
+Vector(const Vector& other);
+Vector& operator=(const Vector& other);
+\~Vector() override;
+
+```
+// override polymorphic methods
+Vector* clone() const override;
+Vector* add(const Tensors& other) const override;
+Vector* substract(const Tensors& other) const override;
+Vector* scalar(f32 s) const override;
+
+// static convenience
+static Vector add(const Vector& a, const Vector& b);
+static Vector substract(const Vector& a, const Vector& b);
+static Vector scalar(const Vector& a, f32 s);
+
+Matrix to_matrix() const;
+
+// operators
+friend Vector operator+(const Vector& a, const Vector& b);
+friend Vector operator-(const Vector& a, const Vector& b);
+friend Vector operator*(const Vector& a, f32 s);
+```
+
+};
+
+\#endif // VECTOR\_HPP
+
+// ===== File: Tensors.cpp =====
+\#include "Tensors.hpp"
+
+Tensors::Tensors() : rows(0), cols(0) {}
+Tensors::Tensors(const Tensors& other) : \_content(other.\_content), rows(other.rows), cols(other.cols) {}
+Tensors& Tensors::operator=(const Tensors& other) {
+if (this != \&other) {
+\_content = other.\_content;
+rows = other.rows;
+cols = other.cols;
+}
+return \*this;
+}
+Tensors::\~Tensors() {}
+
+void Tensors::print() const {
+for (const auto& row : \_content) {
+for (f32 val : row) std::cout << val << " ";
+std::cout << '\n';
+}
+}
+
+int Tensors::size() const { return static\_cast<int>(rows \* cols); }
+
+std::vector<f32>& Tensors::operator\[]\(size\_t index) { return \_content.at(index); }
+const std::vector<f32>& Tensors::operator\[]\(size\_t index) const { return \_content.at(index); }
+
+std::ostream& operator<<(std::ostream& os, const Tensors& v) {
+for (size\_t i = 0; i < v.rows; ++i) {
+for (size\_t j = 0; j < v.cols; ++j) os << v.\_content\[i]\[j] << " ";
+os << '\n';
+}
+return os;
+}
+
+// ===== File: Matrix.cpp =====
+\#include "Matrix.hpp"
+\#include "Vector.hpp"
+\#include <stdexcept>
+
+Matrix::Matrix() { rows = cols = 0; }
+Matrix::Matrix(size\_t r, size\_t c) { rows = r; cols = c; \_content.assign(r, std::vector<f32>(c, 0.0f)); }
+Matrix::Matrix(const Matrix& other) : Tensors(other) {}
+Matrix& Matrix::operator=(const Matrix& other) { Tensors::operator=(other); return \*this; }
+Matrix::\~Matrix() {}
+
+Matrix\* Matrix::clone() const { return new Matrix(\*this); }
+
+Matrix\* Matrix::add(const Tensors& other) const {
+const Matrix\* m = dynamic\_cast\<const Matrix\*>(\&other);
+if (!m || rows != m->rows || cols != m->cols) throw std::runtime\_error("Matrix::add: size mismatch");
+Matrix\* result = new Matrix(rows, cols);
+for (size\_t i = 0; i < rows; ++i)
+for (size\_t j = 0; j < cols; ++j)
+(\*result)\[i]\[j] = \_content\[i]\[j] + m->\_content\[i]\[j];
+return result;
+}
+
+Matrix\* Matrix::substract(const Tensors& other) const {
+const Matrix\* m = dynamic\_cast\<const Matrix\*>(\&other);
+if (!m || rows != m->rows || cols != m->cols) throw std::runtime\_error("Matrix::substract: size mismatch");
+Matrix\* result = new Matrix(rows, cols);
+for (size\_t i = 0; i < rows; ++i)
+for (size\_t j = 0; j < cols; ++j)
+(\*result)\[i]\[j] = \_content\[i]\[j] - m->\_content\[i]\[j];
+return result;
+}
+
+Matrix\* Matrix::scalar(f32 s) const {
+Matrix\* result = new Matrix(rows, cols);
+for (size\_t i = 0; i < rows; ++i)
+for (size\_t j = 0; j < cols; ++j)
+(\*result)\[i]\[j] = \_content\[i]\[j] \* s;
+return result;
+}
+
+Matrix Matrix::add(const Matrix& a, const Matrix& b) { return \*a.add(b); }
+Matrix Matrix::substract(const Matrix& a, const Matrix& b) { return \*a.substract(b); }
+Matrix Matrix::scalar(const Matrix& a, f32 s) { return \*a.scalar(s); }
+
+Matrix operator+(const Matrix& a, const Matrix& b) { return Matrix::add(a, b); }
+Matrix operator-(const Matrix& a, const Matrix& b) { return Matrix::substract(a, b); }
+Matrix operator\*(const Matrix& a, f32 s) { return Matrix::scalar(a, s); }
+
+bool Matrix::is\_square() const { return rows == cols; }
+Vector Matrix::to\_vector() const {
+std::vector<f32> flat;
+for (const auto& row : \_content) flat.insert(flat.end(), row\.begin(), row\.end());
+return Vector(flat);
+}
+
+// ===== File: Vector.cpp =====
+\#include "Vector.hpp"
+\#include "Matrix.hpp"
+\#include <stdexcept>
+
+Vector::Vector() { rows = 1; cols = 0; }
+Vector::Vector(size\_t length) { rows = 1; cols = length; \_content.assign(1, std::vector<f32>(length, 0.0f)); }
+Vector::Vector(const Vector& other) : Tensors(other) {}
+Vector& Vector::operator=(const Vector& other) { Tensors::operator=(other); return \*this; }
+Vector::\~Vector() {}
+
+Vector\* Vector::clone() const { return new Vector(\*this); }
+
+Vector\* Vector::add(const Tensors& other) const {
+const Vector\* v = dynamic\_cast\<const Vector\*>(\&other);
+if (!v || cols != v->cols) throw std::runtime\_error("Vector::add: size mismatch");
+Vector\* result = new Vector(cols);
+for (size\_t i = 0; i < cols; ++i) (\*result)\[0]\[i] = \_content\[0]\[i] + v->\_content\[0]\[i];
+return result;
+}
+
+Vector\* Vector::substract(const Tensors& other) const {
+const Vector\* v = dynamic\_cast\<const Vector\*>(\&other);
+if (!v || cols != v->cols) throw std::runtime\_error("Vector::substract: size mismatch");
+Vector\* result = new Vector(cols);
+for (size\_t i = 0; i < cols; ++i) (\*result)\[0]\[i] = \_content\[0]\[i] - v->\_content\[0]\[i];
+return result;
+}
+
+Vector\* Vector::scalar(f32 s) const {
+Vector\* result = new Vector(cols);
+for (size\_t i = 0; i < cols; ++i) (\*result)\[0]\[i] = \_content\[0]\[i] \* s;
+return result;
+}
+
+Vector Vector::add(const Vector& a, const Vector& b) { return \*a.add(b); }
+Vector Vector::substract(const Vector& a, const Vector& b) { return \*a.substract(b); }
+Vector Vector::scalar(const Vector& a, f32 s) { return \*a.scalar(s); }
+
+Vector operator+(const Vector& a, const Vector& b) { return Vector::add(a, b); }
+Vector operator-(const Vector& a, const Vector& b) { return Vector::substract(a, b); }
+Vector operator\*(const Vector& a, f32 s) { return Vector::scalar(a, s); }
+
+Matrix Vector::to\_matrix() const {
+Matrix m(1, cols);
+for (size\_t i = 0; i < cols; ++i) m\[0]\[i] = \_content\[0]\[i];
+return m;
+}
+

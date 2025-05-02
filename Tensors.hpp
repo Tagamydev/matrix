@@ -10,33 +10,38 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef MATRIX_HPP
-# define MATRIX_HPP
+#ifndef TENSORS_HPP
+# define TENSORS_HPP
 
 # pragma once
-# include "Tensors.hpp"
-# include "Vector.hpp"
+# include <string>
+# include <iostream>
+# include <vector>
+# include <climits>
 
-class Matrix : public Tensors {
+static_assert(sizeof(float) * CHAR_BIT == 32, "float is not 32 bit on this architecture, fix the f32 typedef.");
+typedef float f32;
+
+class Tensors {
 	public:
-		Matrix();
-		Matrix(size_t r, size_t c);
+		virtual ~Tensors() {}
 	
-		Matrix* clone() const override;
-		Matrix* add(const Tensors& other) const override;
-		Matrix* substract(const Tensors& other) const override;
-		Matrix* scalar(f32 scalar) const override;
+		virtual Tensors* clone() const = 0;
+		virtual Tensors* add(const Tensors& other) const = 0;
+		virtual Tensors* substract(const Tensors& other) const = 0;
+		virtual Tensors* scalar(f32 scalar) const = 0;
 	
-		static Matrix add(const Matrix& a, const Matrix& b);
-		static Matrix substract(const Matrix& a, const Matrix& b);
-		static Matrix scalar(const Matrix& a, f32 scalar);
+		virtual void print() const;
+		friend std::ostream& operator<<(std::ostream& os, const Tensors& v);
 	
-		bool is_square() const;
-		Vector to_vector() const;
+		virtual int size() const;
+		std::vector<f32>& operator[](size_t index);
+		const std::vector<f32>& operator[](size_t index) const;
 	
-		friend Matrix operator+(const Matrix& a, const Matrix& b);
-		friend Matrix operator-(const Matrix& a, const Matrix& b);
-		friend Matrix operator*(const Matrix& a, f32 scalar);
+	protected:
+		std::vector<std::vector<f32>> _content;
+		size_t rows = 0;
+		size_t cols = 0;
 };
 
 #endif

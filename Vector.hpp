@@ -10,33 +10,33 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef MATRIX_HPP
-# define MATRIX_HPP
+#ifndef VECTOR_HPP
+# define VECTOR_HPP
 
 # pragma once
 # include "Tensors.hpp"
-# include "Vector.hpp"
+# include "Matrix.hpp"
 
-class Matrix : public Tensors {
+class Vector : public Tensors {
 	public:
-		Matrix();
-		Matrix(size_t r, size_t c);
+		Vector();
+		Vector(size_t length);
+		Vector(const std::vector<f32>& flat);
 	
-		Matrix* clone() const override;
-		Matrix* add(const Tensors& other) const override;
-		Matrix* substract(const Tensors& other) const override;
-		Matrix* scalar(f32 scalar) const override;
+		Vector* clone() const override;
+		Vector* add(const Tensors& other) const override;
+		Vector* substract(const Tensors& other) const override;
+		Vector* scalar(f32 scalar) const override;
 	
-		static Matrix add(const Matrix& a, const Matrix& b);
-		static Matrix substract(const Matrix& a, const Matrix& b);
-		static Matrix scalar(const Matrix& a, f32 scalar);
+		static Vector add(const Vector& a, const Vector& b);
+		static Vector substract(const Vector& a, const Vector& b);
+		static Vector scalar(const Vector& a, f32 scalar);
 	
-		bool is_square() const;
-		Vector to_vector() const;
+		Matrix to_matrix() const;
 	
-		friend Matrix operator+(const Matrix& a, const Matrix& b);
-		friend Matrix operator-(const Matrix& a, const Matrix& b);
-		friend Matrix operator*(const Matrix& a, f32 scalar);
+		friend Vector operator+(const Vector& a, const Vector& b);
+		friend Vector operator-(const Vector& a, const Vector& b);
+		friend Vector operator*(const Vector& a, f32 scalar);
 };
 
 #endif

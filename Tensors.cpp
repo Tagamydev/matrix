@@ -11,23 +11,7 @@
 /* ************************************************************************** */
 
 #include "Matrix.hpp"
-
-Tensors::Tensors() : rows(0), cols(0) {}
-
-Tensors::Tensors(const Tensors& other)
-	: _content(other._content), rows(other.rows), cols(other.cols) {}
-
-Tensors& Tensors::operator=(const Tensors& other) {
-	if (this != &other)
-	{
-		_content = other._content;
-		rows = other.rows;
-		cols = other.cols;
-	}
-	return *this;
-}
-
-Tensors::~Tensors() {}
+#include <stdexcept>
 
 void Tensors::print() const {
 	for (const auto& row : _content) {
@@ -58,5 +42,3 @@ std::ostream& operator<<(std::ostream& os, const Tensors& v) {
 	}
 	return os;
 }
-
-
