@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Matrix.hpp"
+#include "Tensors.hpp"
 #include <stdexcept>
 
 void Tensors::print() const {

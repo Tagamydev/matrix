@@ -17,6 +17,8 @@
 # include "Tensors.hpp"
 # include "Matrix.hpp"
 
+class Matrix;
+
 class Vector : public Tensors {
 	public:
 		Vector();

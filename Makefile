@@ -14,9 +14,14 @@ NAME		=	Matrix
 CXXFLAGS	=	-g -Wall -Wextra -Werror -I ./
 CXX		=	c++ $(CXXFLAGS)
 MAIN		=	./main.cpp
-INC		=	./Matrix.hpp
+INC		=	./Matrix.hpp \
+			./Tensors.hpp \
+			./Vector.hpp \
+
 SRCS		=	$(MAIN) \
-				./Matrix.cpp
+			./Tensors.cpp \
+			./Matrix.cpp \
+			./Vector.cpp \
 
 O_DIR		=	./objects/
 OBJS		=	$(addprefix $(O_DIR)/, $(SRCS:.cpp=.o))
